@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Social Graph Analyzer - Pro Matrix Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #08090c; color: #d1d5db; }
+        .card { background-color: #11141a; border: 1px solid #1f293d; }
+        .node-group { cursor: pointer; }
+        .link { stroke: #2a364d; stroke-opacity: 0.6; stroke-width: 2px; transition: stroke 0.3s, stroke-width 0.3s; }
+        .active-link { stroke: #14b8a6 !important; stroke-width: 4px !important; stroke-opacity: 1 !important; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #11141a; }
+        ::-webkit-scrollbar-thumb { background: #14b8a6; border-radius: 3px; }
+    </style>
+</head>
+<body class="flex min-h-screen font-sans antialiased selection:bg-teal-500 selection:text-white">
+
+    <aside class="w-85 bg-[#0b0d11] border-r border-[#1f293d] p-5 flex flex-col gap-5 shrink-0 overflow-y-auto">
+        <div class="space-y-1">
+            <div class="flex items-center gap-3 text-white font-bold text-lg tracking-wider">
+                <i class="fa-solid fa-server text-teal-400 text-xl animate-spin-slow"></i>
+                <span>GRAPH CORE PRO</span>
+            </div>
+            <p class="text-[11px] text-zinc-500">Production network engine modeling 30-day cross-platform creator reviews.</p>
+        </div>
+        <hr class="border-zinc-800">
+
+        <div class="space-y-2.5">
+            <div class="text-xs font-bold text-teal-400 uppercase tracking-widest flex items-center gap-1.5">
+                <i class="fa-solid fa-user-gear text-xs"></i> Account Provisioning
+            </div>
+            <div class="space-y-2">
+                <input type="text" id="node-name" placeholder="Channel Handle/Name" class="w-full bg-[#161b24] border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-400 font-medium">
+                <div class="grid grid-cols-2 gap-2">
+                    <select id="node-platform" class="bg-[#161b24] border border-zinc-700 rounded-lg px-2 py-2 text-xs text-white focus:outline-none focus:border-teal-400">
+                        <option value="Facebook">Facebook Base</option>
+                        <option value="Instagram">Instagram Star</option>
+                        <option value="TikTok">TikTok Creator</option>
+                        <option value="YouTube">YouTube Elite</option>
+                    </select>
+                    <input type="number" id="node-metric" placeholder="Followers (k)" class="bg-[#161b24] border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-400">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="number" id="node-monthly-views" placeholder="30d Views (k)" class="bg-[#161b24] border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-400">
+                    <input type="number" id="node-monthly-growth" placeholder="Net Growth (k)" class="bg-[#161b24] border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-400">
+                </div>
+                <button id="add-node-btn" class="w-full bg-teal-500 hover:bg-teal-400 text-slate-950 text-xs font-bold py-2.5 rounded-lg transition-colors shadow-md">Commit Profile Matrix</button>
+            </div>
+        </div>
+
+        <hr class="border-zinc-800">
+
+        <div class="space-y-2.5">
+            <div class="text-xs font-bold text-teal-400 uppercase tracking-widest flex items-center gap-1.5"><i class="fa-solid fa-circle-nodes"></i> Vector Interconnect</div>
+            <div class="space-y-2">
+                <div class="grid grid-cols-2 gap-2">
+                    <select id="edge-src" class="w-full bg-[#161b24] border border-zinc-700 rounded-lg px-2 py-2 text-xs text-white"></select>
+                    <select id="edge-tgt" class="w-full bg-[#161b24] border border-zinc-700 rounded-lg px-2 py-2 text-xs text-white"></select>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <button id="add-edge-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold py-2 rounded-lg transition-colors">Bind Nodes</button>
+                    <button id="del-edge-btn" class="bg-rose-700 hover:bg-rose-600 text-white text-xs font-semibold py-2 rounded-lg transition-colors">Sever Link</button>
+                </div>
+            </div>
+        </div>
+
+        <hr class="border-zinc-800">
+
+        <div class="space-y-3">
+            <div class="text-xs font-bold text-teal-400 uppercase tracking-widest flex items-center gap-1.5"><i class="fa-solid fa-brain"></i> Algorithmic Sandbox</div>
+            <div class="space-y-2">
+                <select id="algo-select" class="w-full bg-[#161b24] border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none">
+                    <option value="explore">Interactive Node Audit Profile Mode</option>
+                    <option value="bfs">Breadth-First Search (BFS Trace Engine)</option>
+                    <option value="dfs">Depth-First Search (DFS Focus Trace)</option>
+                    <option value="shortest">Dijkstra Shortest Path Finder</option>
+                </select>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <div>
+                    <label class="block text-[10px] text-zinc-500 uppercase font-bold mb-1">Source Node</label>
+                    <select id="source-select" class="w-full bg-[#161b24] border border-zinc-700 rounded-lg px-2 py-1.5 text-xs text-white"></select>
+                </div>
+                <div id="target-select-container" class="hidden">
+                    <label class="block text-[10px] text-zinc-500 uppercase font-bold mb-1">Target Node</label>
+                    <select id="target-select" class="w-full bg-[#161b24] border border-zinc-700 rounded-lg px-2 py-1.5 text-xs text-white"></select>
+                </div>
+            </div>
+            <div class="flex gap-2 pt-1">
+                <button id="run-btn" class="flex-1 bg-gradient-to-r from-teal-500 to-cyan-500 hover:brightness-110 text-slate-950 text-xs font-bold py-2.5 rounded-lg transition-all">Step Algorithm</button>
+                <button id="reset-btn" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs px-3 rounded-lg">Clear</button>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 p-6 space-y-6 flex flex-col overflow-y-auto">
+        
+        <header class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="card p-4 rounded-xl shadow-lg">
+                <div class="text-xs font-bold text-zinc-400 uppercase tracking-wide">Aggregate Historical Views</div>
+                <div class="flex items-baseline gap-2 mt-2">
+                    <span id="global-monthly-views" class="text-2xl font-bold text-white font-mono">0k</span>
+                    <span class="text-[10px] text-emerald-400 font-mono font-bold"><i class="fa-solid fa-chart-line"></i> 30d Matrix</span>
+                </div>
+            </div>
+            <div class="card p-4 rounded-xl shadow-lg">
+                <div class="text-xs font-bold text-zinc-400 uppercase tracking-wide">Net Channel Acquisition Velocity</div>
+                <div class="flex items-baseline gap-2 mt-2">
+                    <span id="global-monthly-growth" class="text-2xl font-bold text-teal-400 font-mono">+0k</span>
+                    <span class="text-[10px] text-zinc-400 font-mono">Followers</span>
+                </div>
+            </div>
+            <div class="card p-4 rounded-xl shadow-lg">
+                <div class="text-xs font-bold text-zinc-400 uppercase tracking-wide">Network Graph Connections (Edges)</div>
+                <div class="flex items-baseline gap-2 mt-2">
+                    <span id="global-edges" class="text-2xl font-bold text-white font-mono">0</span>
+                    <span class="text-[10px] text-zinc-500 font-mono">Active Link Paths</span>
+                </div>
+            </div>
+            <div class="card p-4 rounded-xl shadow-lg">
+                <div class="text-xs font-bold text-zinc-400 uppercase tracking-wide">Managed Identity Nodes</div>
+                <div class="flex items-baseline gap-2 mt-2">
+                    <span id="global-nodes" class="text-2xl font-bold text-white font-mono">0</span>
+                    <span class="text-[10px] text-zinc-500 font-mono">Profiles Loaded</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="flex items-center justify-between bg-[#11141a] px-4 py-3 rounded-xl border border-[#1f293d]">
+            <div class="text-xs font-bold text-white tracking-wide uppercase"><i class="fa-solid fa-network-wired text-teal-400 mr-1"></i> Active Matrix Pivot Stream</div>
+            <div class="flex gap-1.5" id="platform-filter-group">
+                <button onclick="changePlatformPivot('Global')" class="plat-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-teal-500 text-slate-950">Unified Ecosystem</button>
+                <button onclick="changePlatformPivot('Facebook')" class="plat-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold text-zinc-400 hover:text-white transition-all"><i class="fa-brands fa-facebook text-blue-500 mr-1"></i> Facebook</button>
+                <button onclick="changePlatformPivot('Instagram')" class="plat-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold text-zinc-400 hover:text-white transition-all"><i class="fa-brands fa-instagram text-pink-500 mr-1"></i> Instagram</button>
+                <button onclick="changePlatformPivot('TikTok')" class="plat-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold text-zinc-400 hover:text-white transition-all"><i class="fa-brands fa-tiktok text-white mr-1"></i> TikTok</button>
+                <button onclick="changePlatformPivot('YouTube')" class="plat-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold text-zinc-400 hover:text-white transition-all"><i class="fa-brands fa-youtube text-red-500 mr-1"></i> YouTube</button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 min-h-[500px]">
+            
+            <div class="card p-4 rounded-xl lg:col-span-8 flex flex-col relative min-h-[500px]">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-xs font-bold text-zinc-400 uppercase tracking-wider"><span id="active-pivot-label" class="text-teal-400">Global</span> Interactive Topology Environment</span>
+                    <span class="text-[10px] text-zinc-500 font-mono">D3 Structural Engine v7</span>
+                </div>
+                <div class="relative bg-[#06070a] rounded-xl border border-[#1f293d] flex-1 flex justify-center items-center overflow-hidden">
+                    <svg id="graph-svg" class="w-full h-full min-h-[440px] absolute inset-0"></svg>
+                </div>
+            </div>
+
+            <div class="lg:col-span-4 flex flex-col gap-6">
+                
+                <div class="card p-5 rounded-xl flex flex-col shadow-xl">
+                    <h3 class="text-xs font-bold text-teal-400 uppercase tracking-widest mb-4"><i class="fa-solid fa-address-card"></i> Node Telemetry Monitor</h3>
+                    <div class="flex items-center gap-4 mb-4">
+                        <div id="ins-avatar" class="w-14 h-14 rounded-full bg-zinc-800 flex items-center justify-center text-white font-bold text-xl border-2 border-zinc-700 shadow-md transition-all">-</div>
+                        <div class="flex-1">
+                            <div id="ins-name" class="font-bold text-white text-base">Awaiting Selection</div>
+                            <div id="ins-platform" class="text-xs text-zinc-500 font-medium">Click any node node layer to monitor</div>
+                        </div>
+                        <button id="node-purge-btn" class="hidden text-rose-500 hover:text-rose-400 text-xs bg-rose-500/10 px-2.5 py-1.5 rounded-lg border border-rose-500/20"><i class="fa-solid fa-trash-can"></i></button>
+                    </div>
+                    <div class="space-y-3 text-xs">
+                        <div class="flex justify-between border-b border-zinc-800 pb-2"><span class="text-zinc-400">Total Followers Base</span><span id="ins-metric" class="text-white font-mono font-bold">—</span></div>
+                        <div class="flex justify-between border-b border-zinc-800 pb-2"><span class="text-zinc-400">Last Month Views</span><span id="ins-views" class="text-white font-mono font-bold">—</span></div>
+                        <div class="flex justify-between border-b border-zinc-800 pb-2"><span class="text-zinc-400">Last Month Net Delta</span><span id="ins-growth" class="text-emerald-400 font-mono font-bold">—</span></div>
+                        <div class="flex justify-between border-b border-zinc-800 pb-2"><span class="text-zinc-400">Ecosystem Degree Path Count</span><span id="ins-deg" class="text-white font-mono font-bold">—</span></div>
+                        <div class="flex justify-between"><span class="text-zinc-400">Calculated Influence Index</span><span id="ins-centrality" class="text-teal-400 font-mono font-bold">—</span></div>
+                    </div>
+                </div>
+
+                <div class="card p-5 rounded-xl flex-1 flex flex-col min-h-[220px]">
+                    <h3 class="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">System Processing Log</h3>
+                    <div id="trace-log" class="bg-[#06070a] p-3 rounded-xl border border-zinc-800 font-mono text-xs text-emerald-400 overflow-y-auto flex-1 h-[160px]">
+                        Ecosystem tracking active. Pipeline ready.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Enterprise Platform Datastore Array Configured from Historical Reviews Data
+        let graphData = {
+            nodes: [
+                { id: "Aria Chen", platform: "Instagram", metric: 850, lastMonthViews: 3400, lastMonthGrowth: 45 },
+                { id: "Nour", platform: "TikTok", metric: 1200, lastMonthViews: 9800, lastMonthGrowth: 180 },
+                { id: "Kiri", platform: "YouTube", metric: 940, lastMonthViews: 5200, lastMonthGrowth: 22 },
+                { id: "Cleo", platform: "Facebook", metric: 340, lastMonthViews: 1100, lastMonthGrowth: -5 },
+                { id: "Omar", platform: "Instagram", metric: 120, lastMonthViews: 450, lastMonthGrowth: 12 },
+                { id: "Soo-Jin", platform: "TikTok", metric: 450, lastMonthViews: 2100, lastMonthGrowth: 85 },
+                { id: "Priya", platform: "Facebook", metric: 210, lastMonthViews: 890, lastMonthGrowth: 3 },
+                { id: "Jakob", platform: "YouTube", metric: 180, lastMonthViews: 750, lastMonthGrowth: 14 },
+                { id: "Maya", platform: "Instagram", metric: 95, lastMonthViews: 310, lastMonthGrowth: 8 },
+                { id: "Luca", platform: "TikTok", metric: 310, lastMonthViews: 1400, lastMonthGrowth: 39 }
+            ],
+            links: [
+                { source: "Omar", target: "Soo-Jin" }, { source: "Omar", target: "Priya" },
+                { source: "Soo-Jin", target: "Jakob" }, { source: "Priya", target: "Aria Chen" },
+                { source: "Jakob", target: "Nour" }, { source: "Nour", target: "Aria Chen" },
+                { source: "Nour", target: "Kiri" }, { source: "Aria Chen", target: "Cleo" },
+                { source: "Aria Chen", target: "Kiri" }, { source: "Luca", target: "Maya" },
+                { source: "Luca", target: "Nour" }, { source: "Cleo", target: "Priya" }
+            ]
+        };
+
+        let currentPlatformPivot = "Global";
+        let inspectedNodeContext = null;
+        let algorithmicPipeline = { visited: new Set(), queue: [], stack: [] };
+        let svg = d3.select("#graph-svg");
+        let simulation, d3Links, d3Nodes;
+
+        function initApp() {
+            syncDropdownSelectors();
+            evaluateSystemMetrics();
+            compileD3RenderEngine();
+            
+            window.addEventListener("resize", () => {
+                const r = document.getElementById("graph-svg").getBoundingClientRect();
+                if(simulation) simulation.force("center", d3.forceCenter(r.width/2, r.height/2)).alpha(0.2).restart();
+            });
+        }
+
+        // CONTROL APPARATUS DROPDOWN SYNCHRONIZATION
+        function syncDropdownSelectors() {
+            const eSrc = document.getElementById("edge-src");
+            const eTgt = document.getElementById("edge-tgt");
+            const sSel = document.getElementById("source-select");
+            const tSel = document.getElementById("target-select");
+
+            const cachedSrc = sSel.value;
+            const cachedTgt = tSel.value;
+
+            [eSrc, eTgt, sSel, tSel].forEach(s => s.innerHTML = "");
+
+            graphData.nodes.sort((a,b) => a.id.localeCompare(b.id)).forEach(n => {
+                eSrc.options.add(new Option(n.id, n.id));
+                eTgt.options.add(new Option(n.id, n.id));
+                sSel.options.add(new Option(n.id, n.id));
+                tSel.options.add(new Option(n.id, n.id));
+            });
+
+            if (graphData.nodes.some(n => n.id === cachedSrc)) sSel.value = cachedSrc;
+            if (graphData.nodes.some(n => n.id === cachedTgt)) tSel.value = cachedTgt;
+        }
+
+        // MATHEMATICAL MATRIX ENGINE EVALUATORS
+        function evaluateSystemMetrics() {
+            graphData.nodes.forEach(n => n.degree = 0);
+            
+            graphData.links.forEach(l => {
+                let sId = typeof l.source === 'object' ? l.source.id : l.source;
+                let tId = typeof l.target === 'object' ? l.target.id : l.target;
+                let sNode = graphData.nodes.find(n => n.id === sId);
+                let tNode = graphData.nodes.find(n => n.id === tId);
+                if(sNode) sNode.degree++;
+                if(tNode) tNode.degree++;
+            });
+
+            document.getElementById("global-nodes").innerText = graphData.nodes.length;
+            document.getElementById("global-edges").innerText = graphData.links.length;
+
+            let collectiveViews = graphData.nodes.reduce((acc, c) => acc + c.lastMonthViews, 0);
+            let collectiveGrowth = graphData.nodes.reduce((acc, c) => acc + c.lastMonthGrowth, 0);
+
+            document.getElementById("global-monthly-views").innerText = (collectiveViews / 1000).toFixed(1) + "M";
+            document.getElementById("global-monthly-growth").innerText = (collectiveGrowth >= 0 ? "+" : "") + collectiveGrowth.toLocaleString() + "k";
+        }
+
+        // HIGH FIDELITY D3 PHYSICS LAYER MATRIX
+        function compileD3RenderEngine() {
+            svg.selectAll("*").remove();
+            const boundingBox = document.getElementById("graph-svg").getBoundingClientRect();
+            const w = boundingBox.width || 600;
+            const h = boundingBox.height || 440;
+
+            // Generate structural links matching data entries
+            d3Links = svg.append("g")
+                .selectAll("line")
+                .data(graphData.links)
+                .enter()
+                .append("line")
+                .attr("class", "link")
+                .attr("id", d => `link-${sanitizeDomStringId(typeof d.source === 'object' ? d.source.id : d.source)}-${sanitizeDomStringId(typeof d.target === 'object' ? d.target.id : d.target)}`);
+
+            // Generate advanced composite object node layers
+            d3Nodes = svg.append("g")
+                .selectAll("g")
+                .data(graphData.nodes)
+                .enter()
+                .append("g")
+                .attr("class", "node-group")
+                .call(d3.drag()
+                    .on("start", (e, d) => { if (!e.active) simulation.alphaTarget(0.2).restart(); d.fx = d.x; d.fy = d.y; })
+                    .on("drag", (e, d) => { d.fx = e.x; d.fy = e.y; })
+                    .on("end", (e, d) => { if (!e.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; }))
+                .on("click", (e, d) => auditTargetNode(d));
+
+            // Layer 1: Core Avatar Base Boundary Disc
+            d3Nodes.append("circle")
+                .attr("id", d => `node-${sanitizeDomStringId(d.id)}`)
+                .attr("class", "node stroke-[#11141a] stroke-[3px] shadow-2xl transition-all duration-300")
+                .call(applyDynamicSizingConstraints);
+
+            // Layer 2: Digital Identity Text Initialization Texture Stamp
+            d3Nodes.append("text")
+                .text(d => d.id.charAt(0).toUpperCase())
+                .attr("text-anchor", "middle")
+                .attr("dy", "4")
+                .attr("fill", d => d.platform === "TikTok" ? "#000" : "#fff")
+                .style("font-weight", "800")
+                .style("font-size", "11px")
+                .style("pointer-events", "none");
+
+            // Layer 3: Network Indicator Base Mini Badge
+            d3Nodes.append("circle")
+                .attr("r", 5.5)
+                .attr("fill", d => getPlatformColorHex(d.platform))
+                .attr("stroke", "#06070a")
+                .attr("stroke-width", "1.5")
+                .attr("cx", 14)
+                .attr("cy", -12);
+
+            // Layer 4: Floating Identity Profile Label Tag
+            d3Nodes.append("text")
+                .text(d => d.id)
+                .attr("y", 26)
+                .attr("text-anchor", "middle")
+                .attr("fill", "#9ca3af")
+                .style("font-weight", "600")
+                .style("font-size", "10px")
+                .style("pointer-events", "none");
+
+            simulation = d3.forceSimulation(graphData.nodes)
+                .force("link", d3.forceLink(graphData.links).id(d => d.id).distance(100))
+                .force("charge", d3.forceManyBody().strength(-240))
+                .force("center", d3.forceCenter(w / 2, h / 2))
+                .force("collision", d3.forceCollide().radius(36));
+
+            simulation.on("tick", () => {
+                d3Links.attr("x1", d => d.source.x)
+                       .attr("y1", d => d.source.y)
+                       .attr("x2", d => d.target.x)
+                       .attr("y2", d => d.target.y);
+                d3Nodes.attr("transform", d => `translate(${d.x},${d.y})`);
+            });
+        }
+
+        function applyDynamicSizingConstraints(selection) {
+            selection.each(function(d) {
+                let radius = 12; 
+                let alpha = currentPlatformPivot === "Global" || d.platform === currentPlatformPivot;
+
+                if (alpha) {
+                    radius = d.lastMonthViews > 5000 ? 22 : d.lastMonthViews > 1500 ? 17 : 13;
+                }
+                
+                d3.select(this)
+                  .transition().duration(300)
+                  .attr("r", radius)
+                  .attr("fill", alpha ? getPlatformColorHex(d.platform) : "#232d3d")
+                  .style("opacity", alpha ? 1.0 : 0.35);
+            });
+        }
+
+        function getPlatformColorHex(plat) {
+            switch(plat) {
+                case "Facebook": return "#3b82f6";
+                case "Instagram": return "#ec4899";
+                case "TikTok": return "#f4f4f5";
+                case "YouTube": return "#ef4444";
+                default: return "#14b8a6";
+            }
+        }
+
+        // DATA ROUTING FILTER OVERLAYS
+        function changePlatformPivot(platform) {
+            currentPlatformPivot = platform;
+            document.getElementById("active-pivot-label").innerText = platform;
+            
+            document.querySelectorAll(".plat-filter-btn").forEach(btn => {
+                btn.className = "plat-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-zinc-400 hover:text-white";
+                if(btn.innerText.includes(platform) || (platform === "Global" && btn.innerText.includes("Unified Ecosystem"))) {
+                    btn.className = "plat-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-teal-500 text-slate-950";
+                }
+            });
+
+            if(d3Nodes) d3Nodes.selectAll("circle.node").call(applyDynamicSizingConstraints);
+            document.getElementById("trace-log").innerText = `Switched graph viewport pipeline focus context: ${platform}`;
+            resetAlgorithmicContext();
+        }
+
+        // TELEMETRY VIEW AUDITOR METRICS EXTRACTOR
+        function auditTargetNode(node) {
+            inspectedNodeContext = node;
+            document.getElementById("node-purge-btn").classList.remove("hidden");
+            
+            const avatar = document.getElementById("ins-avatar");
+            avatar.innerText = node.id.charAt(0).toUpperCase();
+            avatar.style.backgroundColor = getPlatformColorHex(node.platform);
+            avatar.style.color = node.platform === "TikTok" ? "#000" : "#fff";
+            avatar.className = "w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold border-2 border-teal-400 shadow-lg scale-105";
+
+            document.getElementById("ins-name").innerText = node.id;
+            document.getElementById("ins-platform").innerText = `${node.platform} Node Anchor`;
+            
+            document.getElementById("ins-metric").innerText = node.metric.toLocaleString() + "k";
+            document.getElementById("ins-views").innerText = node.lastMonthViews.toLocaleString() + "k";
+            document.getElementById("ins-growth").innerText = (node.lastMonthGrowth >= 0 ? "+" : "") + node.lastMonthGrowth.toLocaleString() + "k followers";
+            document.getElementById("ins-deg").innerText = `${node.degree} links`;
+            
+            let reviewScore = ((node.lastMonthViews * 0.7) + (node.lastMonthGrowth * 2.5) + (node.degree * 15)).toFixed(0);
+            document.getElementById("ins-centrality").innerText = reviewScore + " pts";
+        }
+
+        function clearAuditorCard() {
+            inspectedNodeContext = null;
+            document.getElementById("node-purge-btn").classList.add("hidden");
+            document.getElementById("ins-avatar").innerText = "-";
+            document.getElementById("ins-avatar").style.backgroundColor = "#27272a";
+            document.getElementById("ins-avatar").className = "w-14 h-14 rounded-full bg-zinc-800 flex items-center justify-center text-white font-bold text-xl border border-zinc-700 shadow-md";
+            document.getElementById("ins-name").innerText = "Awaiting Selection";
+            document.getElementById("ins-platform").innerText = "Click any node layer to monitor";
+            document.getElementById("ins-metric").innerText = "—";
+            document.getElementById("ins-views").innerText = "—";
+            document.getElementById("ins-growth").innerText = "—";
+            document.getElementById("ins-deg").innerText = "—";
+            document.getElementById("ins-centrality").innerText = "—";
+        }
+
+        // CONTEXT WORKSPACE STATE DATA CHANGERS (MUTATORS)
+        document.getElementById("add-node-btn").addEventListener("click", () => {
+            const name = document.getElementById("node-name").value.trim();
+            const platform = document.getElementById("node-platform").value;
+            const val = parseInt(document.getElementById("node-metric").value) || 0;
+            const views = parseInt(document.getElementById("node-monthly-views").value) || 0;
+            const growth = parseInt(document.getElementById("node-monthly-growth").value) || 0;
+
+            if(!name) return alert("Assign an identity label key before data provisioning initialization.");
+
+            let targetMatch = graphData.nodes.find(n => n.id.toLowerCase() === name.toLowerCase());
+            if (targetMatch) {
+                targetMatch.platform = platform;
+                targetMatch.metric = val;
+                targetMatch.lastMonthViews = views;
+                targetMatch.lastMonthGrowth = growth;
+                document.getElementById("trace-log").innerText = `Modified review tracking profile criteria metrics for node: ${name}`;
+            } else {
+                graphData.nodes.push({ id: name, platform: platform, metric: val, lastMonthViews: views, lastMonthGrowth: growth });
+                document.getElementById("trace-log").innerText = `Injected new multi-platform channel metadata anchor: ${name}`;
+            }
+
+            document.getElementById("node-name").value = "";
+            document.getElementById("node-metric").value = "";
+            document.getElementById("node-monthly-views").value = "";
+            document.getElementById("node-monthly-growth").value = "";
+            syncGlobalEnginePipelines();
+        });
+
+        document.getElementById("add-edge-btn").addEventListener("click", () => {
+            const s = document.getElementById("edge-src").value;
+            const t = document.getElementById("edge-tgt").value;
+
+            if(!s || !t || s === t) return alert("Select distinct boundaries targets to build a map linkage.");
+
+            let linkExists = graphData.links.some(l => {
+                let sId = typeof l.source === 'object' ? l.source.id : l.source;
+                let tId = typeof l.target === 'object' ? l.target.id : l.target;
+                return (sId === s && tId === t) || (sId === t && tId === s);
+            });
+
+            if(linkExists) return alert("Structural path link mapping redundancy detected between chosen elements.");
+
+            graphData.links.push({ source: s, target: t });
+            document.getElementById("trace-log").innerText = `Committed binding pathway vector link map configuration: ${s} ⟷ ${t}`;
+            syncGlobalEnginePipelines();
+        });
+
+        document.getElementById("del-edge-btn").addEventListener("click", () => {
+            const s = document.getElementById("edge-src").value;
+            const t = document.getElementById("edge-tgt").value;
+
+            let prevLen = graphData.links.length;
+            graphData.links = graphData.links.filter(l => {
+                let sId = typeof l.source === 'object' ? l.source.id : l.source;
+                let tId = typeof l.target === 'object' ? l.target.id : l.target;
+                return !((sId === s && tId === t) || (sId === t && tId === s));
+            });
+
+            if(graphData.links.length === prevLen) {
+                alert("No infrastructure pathway vector matches that criteria configuration statement.");
+            } else {
+                document.getElementById("trace-log").innerText = `Severed social connection link: ${s} ✂️ ${t}`;
+                syncGlobalEnginePipelines();
+            }
+        });
+
+        document.getElementById("node-purge-btn").addEventListener("click", () => {
+            if(!inspectedNodeContext) return;
+            const targetId = inspectedNodeContext.id;
+
+            graphData.nodes = graphData.nodes.filter(n => n.id !== targetId);
+            graphData.links = graphData.links.filter(l => {
+                let sId = typeof l.source === 'object' ? l.source.id : l.source;
+                let tId = typeof l.target === 'object' ? l.target.id : l.target;
+                return sId !== targetId && tId !== targetId;
+            });
+
+            document.getElementById("trace-log").innerText = `Purged graph node profile: ${targetId}`;
+            clearAuditorCard();
+            syncGlobalEnginePipelines();
+        });
+
+        function syncGlobalEnginePipelines() {
+            syncDropdownSelectors();
+            evaluateSystemMetrics();
+            compileD3RenderEngine();
+            resetAlgorithmicContext();
+        }
+
+        // SANDBOX STEP SELECTION MACHINE CONTROLLERS
+        document.getElementById("algo-select").addEventListener("change", (e) => {
+            document.getElementById("target-select-container").style.display = e.target.value === "shortest" ? "block" : "none";
+            resetAlgorithmicContext();
+        });
+
+        document.getElementById("reset-btn").addEventListener("click", resetAlgorithmicContext);
+        document.getElementById("run-btn").addEventListener("click", stepAlgorithmicPipelineMachine);
+
+        function resetAlgorithmicContext() {
+            algorithmicPipeline = { visited: new Set(), queue: [], stack: [] };
+            document.getElementById("trace-log").innerText = "Clear run traces. Diagnostic fields monitoring resets.";
+            
+            if(d3Nodes) d3Nodes.selectAll("circle.node").call(applyDynamicSizingConstraints);
+            if(svg) svg.selectAll("line.link").attr("class", "link");
+        }
+
+        function stepAlgorithmicPipelineMachine() {
+            const mode = document.getElementById("algo-select").value;
+            const root = document.getElementById("source-select").value;
+            const target = document.getElementById("target-select").value;
+
+            if(!root) return alert("Verify target parameters points map exists before deploying tracking queries.");
+            if(mode === "explore") {
+                document.getElementById("trace-log").innerText = "💡 Update execution paradigm parameter settings away from 'Interactive' to start step tracing loops.";
+                return;
+            }
+
+            if(algorithmicPipeline.visited.size === 0 && algorithmicPipeline.queue.length === 0 && algorithmicPipeline.stack.length === 0) {
+                document.getElementById("trace-log").innerHTML = `<b>Initiating Search Sequence:</b> Tracking from [${root}]<br>`;
+                if(mode === "bfs") algorithmicPipeline.queue.push(root);
+                if(mode === "dfs") algorithmicPipeline.stack.push(root);
+                if(mode === "shortest") { triggerDijkstraPathfinder(root, target); return; }
+            }
+
+            if(mode === "bfs" && algorithmicPipeline.queue.length > 0) {
+                let current = algorithmicPipeline.queue.shift();
+                if(!algorithmicPipeline.visited.has(current)) {
+                    algorithmicPipeline.visited.add(current);
+                    overrideNodeVisualColor(current, "#22c55e");
+                    
+                    let adjacencies = seekAdjacencies(current);
+                    adjacencies.forEach(n => {
+                        if(!algorithmicPipeline.visited.has(n) && !algorithmicPipeline.queue.includes(n)) algorithmicPipeline.queue.push(n);
+                    });
+                    document.getElementById("trace-log").innerHTML += `➔ Shift Head: <b>${current}</b>. Processing adjacent boundaries nodes: [${adjacencies.join(", ")}]<br>`;
+                }
+            } else if(mode === "dfs" && algorithmicPipeline.stack.length > 0) {
+                let current = algorithmicPipeline.stack.pop();
+                if(!algorithmicPipeline.visited.has(current)) {
+                    algorithmicPipeline.visited.add(current);
+                    overrideNodeVisualColor(current, "#eab308");
+                    
+                    let adjacencies = seekAdjacencies(current);
+                    adjacencies.forEach(n => {
+                        if(!algorithmicPipeline.visited.has(n)) algorithmicPipeline.stack.push(n);
+                    });
+                    document.getElementById("trace-log").innerHTML += `➔ Deep Stack Frame Pop: <b>${current}</b>. Focus track branches updated.<br>`;
+                }
+            } else {
+                document.getElementById("trace-log").innerHTML += "<span class='text-zinc-600'>Traversal suite bounds complete. End tracker reached.</span><br>";
+            }
+
+            let logBox = document.getElementById("trace-log");
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        function seekAdjacencies(id) {
+            let list = [];
+            graphData.links.forEach(l => {
+                let sId = typeof l.source === 'object' ? l.source.id : l.source;
+                let tId = typeof l.target === 'object' ? l.target.id : l.target;
+                if(sId === id) list.push(tId);
+                if(tId === id) list.push(sId);
+            });
+            return list;
+        }
+
+        function triggerDijkstraPathfinder(start, end) {
+            if(start === end) return alert("Define distinct boundary limits target configurations.");
+            
+            let queue = [start];
+            let visited = new Set();
+            let parentMap = {};
+            parentMap[start] = null;
+            let successFlag = false;
+
+            while(queue.length > 0) {
+                let curr = queue.shift();
+                if(curr === end) { successFlag = true; break; }
+                visited.add(curr);
+
+                seekAdjacencies(curr).forEach(nb => {
+                    if(!visited.has(nb) && !queue.includes(nb)) {
+                        parentMap[nb] = curr;
+                        queue.push(nb);
+                    }
+                });
+            }
+
+            if(successFlag) {
+                let pathSegments = [];
+                let traceStep = end;
+                while(traceStep !== null) {
+                    pathSegments.unshift(traceStep);
+                    traceStep = parentMap[traceStep];
+                }
+                document.getElementById("trace-log").innerHTML = `✨ <b>Review Metrics Optimal Shortest Path:</b><br><span class="text-teal-400 font-bold font-mono text-[11px]">${pathSegments.join(" ➔ ")}</span>`;
+                
+                // Illuminate target nodes
+                pathSegments.forEach(n => overrideNodeVisualColor(n, "#14b8a6"));
+                
+                // Illuminate links along computed shortest path channels
+                for(let i=0; i < pathSegments.length - 1; i++) {
+                    let u = sanitizeDomStringId(pathSegments[i]);
+                    let v = sanitizeDomStringId(pathSegments[i+1]);
+                    
+                    let linkElement1 = d3.select(`#link-${u}-${v}`);
+                    let linkElement2 = d3.select(`#link-${v}-${u}`);
+                    
+                    if(!linkElement1.empty()) linkElement1.attr("class", "link active-link");
+                    if(!linkElement2.empty()) linkElement2.attr("class", "link active-link");
+                }
+            } else {
+                document.getElementById("trace-log").innerHTML = `❌ <span class="text-rose-400">No routing options map a continuous structural trace stream path between selections.</span>`;
+            }
+        }
+
+        function overrideNodeVisualColor(id, color) {
+            let targetCircle = d3.select(`#node-${sanitizeDomStringId(id)}`);
+            if(!targetCircle.empty()) targetCircle.attr("fill", color).style("opacity", 1.0);
+        }
+
+        function sanitizeDomStringId(str) { return str.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9\-]/g, ''); }
+
+        window.onload = () => setTimeout(initApp, 150);
+    </script>
+</body>
+</html>
